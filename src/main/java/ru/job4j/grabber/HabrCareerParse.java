@@ -14,9 +14,9 @@ import java.util.List;
 
 public class HabrCareerParse implements Parse {
     private final DateTimeParser dateTimeParser;
-    int pageNumberLimit = 5;
+    private final int pageNumberLimit = 5;
     private static final String SOURCE_LINK = "https://career.habr.com";
-    private static final String PAGE_LINK = String.format("%s/vacancies/java_developer", SOURCE_LINK);
+    private static final String PAGE_LINK = String.format("%s/vacancies/java_developer?page=", SOURCE_LINK);
 
     public HabrCareerParse(DateTimeParser dateTimeParser) {
         this.dateTimeParser = dateTimeParser;
@@ -26,7 +26,7 @@ public class HabrCareerParse implements Parse {
     public List<Post> list(String link) {
         List<Post> result = new ArrayList<>();
         for (int pageNumber = 1; pageNumber <= pageNumberLimit; pageNumber++) {
-            parsePage(String.format("%s?page=%d", link, pageNumber))
+            parsePage(String.format("%s%d", link, pageNumber))
                     .stream()
                     .map(this::retrieveVacancy)
                     .forEach(result::add);
