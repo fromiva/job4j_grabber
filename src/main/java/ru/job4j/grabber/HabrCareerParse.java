@@ -25,7 +25,10 @@ public class HabrCareerParse {
             String vacancyName = titleElement.text();
             String vacancyDate = row.select(".basic-date").first().attr("datetime");
             String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+            String vacancyDescription = retrieveDescription(link);
             System.out.printf("%s %s %s%n", vacancyName, vacancyDate, link);
+            System.out.println(vacancyDescription);
+            System.out.println();
         });
     }
 
@@ -33,5 +36,16 @@ public class HabrCareerParse {
         Connection connection = Jsoup.connect(link);
         Document document = connection.get();
         return document.select(".vacancy-card__inner");
+    }
+
+    private static String retrieveDescription(String link) {
+        Connection connection = Jsoup.connect(link);
+        Document document = null;
+        try {
+            document = connection.get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return document != null ? document.select(".vacancy-description__text").first().text() : "";
     }
 }
