@@ -23,10 +23,10 @@ public class HabrCareerParse implements Parse {
     }
 
     @Override
-    public List<Post> list(String link) {
+    public List<Post> list() {
         List<Post> result = new ArrayList<>();
         for (int pageNumber = 1; pageNumber <= pageNumberLimit; pageNumber++) {
-            parsePage(String.format("%s%d", link, pageNumber))
+            parsePage(String.format("%s%d", PAGE_LINK, pageNumber))
                     .stream()
                     .map(this::retrieveVacancy)
                     .forEach(result::add);
@@ -36,7 +36,7 @@ public class HabrCareerParse implements Parse {
 
     public static void main(String[] args) {
         Parse parse = new HabrCareerParse(new HabrCareerDateTimeParser());
-        parse.list(PAGE_LINK).forEach(System.out::println);
+        parse.list().forEach(System.out::println);
     }
 
     private static Elements parsePage(String link) {
