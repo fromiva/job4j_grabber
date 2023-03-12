@@ -45,14 +45,7 @@ public class PsqlStore implements Store {
         try (PreparedStatement statement = connection.prepareStatement("select * from posts")) {
             try (ResultSet result = statement.executeQuery()) {
                 while (result.next()) {
-                    Post post = new Post(
-                            result.getInt("id"),
-                            result.getString("title"),
-                            result.getString("link"),
-                            result.getString("description"),
-                            result.getTimestamp("created").toLocalDateTime()
-                    );
-                    posts.add(post);
+                    posts.add(createPost(result));
                 }
             }
         } catch (SQLException e) {
@@ -68,13 +61,7 @@ public class PsqlStore implements Store {
             statement.setInt(1, id);
             try (ResultSet result = statement.executeQuery()) {
                 if (result.next()) {
-                    post = new Post(
-                            result.getInt("id"),
-                            result.getString("title"),
-                            result.getString("link"),
-                            result.getString("description"),
-                            result.getTimestamp("created").toLocalDateTime()
-                    );
+                    post = createPost(result);
                 }
             }
         } catch (SQLException e) {
@@ -88,6 +75,15 @@ public class PsqlStore implements Store {
         if (connection != null) {
             connection.close();
         }
+    }
+
+    private Post createPost(ResultSet set) throws SQLException {
+        return new Post(
+                set.getInt("id"),
+                set.getString("title"),
+                set.getString("link"),
+                set.getString("description"),
+                set.getTimestamp("created").toLocalDateTime());
     }
 
     public static void main(String[] args) {
