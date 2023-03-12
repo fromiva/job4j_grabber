@@ -4,7 +4,11 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Properties;
 
 import static org.quartz.JobBuilder.newJob;
@@ -43,6 +47,27 @@ public class Grabber implements Grab {
 
     }
 
+    public void web(Store store, int port) {
+        new Thread(() -> {
+            try (ServerSocket server = new ServerSocket(port)) {
+                while (!server.isClosed()) {
+                    Socket socket = server.accept();
+                    try (OutputStream out = socket.getOutputStream()) {
+                        out.write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+                        for (Post post : store.getAll()) {
+                            out.write(post.toString().getBytes());
+                            out.write(System.lineSeparator().getBytes());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
     public static class GrabJob implements Job {
         @Override
         public void execute(JobExecutionContext context) {
@@ -64,6 +89,8 @@ public class Grabber implements Grab {
         Parse parse = new HabrCareerParse(new HabrCareerDateTimeParser());
         Store store = new PsqlStore(configuration);
         int time = Integer.parseInt(configuration.getProperty("grabber.launch.interval"));
-        new Grabber(parse, store, scheduler, time).init();
+        Grabber grabber = new Grabber(parse, store, scheduler, time);
+        grabber.init();
+        grabber.web(store, Integer.parseInt(configuration.getProperty("server.port")));
     }
 }
